@@ -227,6 +227,10 @@ class Behaviour():
                         else:
                             analysis_args['ma_series'] = [5, 15, 25, 35, 45]
 
+                    if indicator == 'ma_support':
+                        analysis_args['exponential'] = indicator_conf['exponential'] if 'exponential' in indicator_conf else False
+                        analysis_args['ma'] = indicator_conf['ma'] if 'ma' in indicator_conf else 99
+
                     if indicator == 'ma_crossover':
                         analysis_args['exponential'] = indicator_conf['exponential'] if 'exponential' in indicator_conf else False
                         analysis_args['ma_fast'] = indicator_conf['ma_fast'] if 'ma_fast' in indicator_conf else 13
