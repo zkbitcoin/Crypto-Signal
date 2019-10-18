@@ -171,14 +171,10 @@ class Notifier(IndicatorUtils):
                     if not isinstance(_messages[candle_period], list) or len (_messages[candle_period]) == 0:
                         continue
 
-                    self.notify_discord_message(_messages[candle_period], message_template)                 
+                    for message in _messages[candle_period]:
+                        formatted_message = message_template.render(message)
 
-    def notify_discord_message(self, messages, message_template):
-        for message in messages:
-            formatted_message = message_template.render(message)
-            
-            self.discord_client.notify(formatted_message.strip())
-
+                    self.discord_client.notify(exchange, market_pair, candle_period, _messages[candle_period], self.enable_charts)
 
     def notify_slack(self, new_analysis):
         """Send a notification via the slack notifier
@@ -675,6 +671,9 @@ class Notifier(IndicatorUtils):
                 _messages = messages[exchange][market_pair]
                                     
                 for candle_period in _messages:
+                    if len(_messages[candle_period]) == 0:
+                        continue
+                                        
                     candles_data = self.all_historical_data[exchange][market_pair][candle_period]
                     try:
                         self.create_chart(exchange, market_pair, candle_period, candles_data)
