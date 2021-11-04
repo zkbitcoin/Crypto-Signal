@@ -1,4 +1,5 @@
 .env
+.venv
 settings.env
 config.yml
 .vscode
