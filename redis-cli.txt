@@ -1,0 +1,1 @@
+PUBLISH crypto_signal.crypto_signal "{\"subscription\": \"crypto_signal.crypto_signal\", \"data\": {\"action\":\"update\"}}"

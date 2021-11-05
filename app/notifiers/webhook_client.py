@@ -3,36 +3,29 @@
 
 import json
 import os
-
+import asyncio
 import requests
 import structlog
 
 from notifiers.utils import NotifierUtils
-import asyncio
-import websockets
+import redis
 
-async def ws_send(data):
-    uri = "ws://127.0.0.1:3000"
-    async with websockets.connect(uri) as websocket:
-        await websocket.send(json.dumps({
-            "event": "subscribe",
-            "subscription": "crypto_signal.crypto_signal"
-        }))
-        resp = await websocket.recv()
-        print(f"<<< {resp}")
-        await websocket.send(data)
-        resp = await websocket.recv()
-        print(f"<<< {resp}")
 
 class WebhookNotifier(NotifierUtils):
     """Class for handling webhook notifications
     """
-
     def __init__(self, url, username, password):
         self.logger = structlog.get_logger()
         self.url = url
         self.username = username
         self.password = password
+        self.r = redis.StrictRedis(host='127.0.0.1', port=6379)
+        self.p = self.r.pubsub(ignore_subscribe_messages=True)
+        self.p.subscribe('crypto_signal.crypto_signal')
+
+    def __del__(self):
+        self.p.close()
+        self.r.close()
 
     def notify(self, messages, chart_file):
         """Sends the notification messages.
@@ -49,13 +42,14 @@ class WebhookNotifier(NotifierUtils):
         #Content type must be included in the header
         headers = {"content-type": "application/json"}
 
-        asyncio.run(ws_send(json.dumps({
-                "event": "message",
-                "subscription": "crypto_signal.crypto_signal",
-                "data": {
-                    "messages": messages
-                }
-        })))
+        self.r.publish('crypto_signal.crypto_signal', json.dumps({
+            "event": "message",
+            "subscription": "crypto_signal.crypto_signal",
+            "data": {
+                "messages": messages
+            }
+        }))
+
         #
         #result = ws.recv()
         #result = json.loads(result)
